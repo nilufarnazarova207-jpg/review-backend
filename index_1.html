@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0C0F16;
+    --bg-grid: #12161F;
+    --surface: #151A24;
+    --surface-2: #1C2230;
+    --border: #2B3242;
+    --border-soft: #212736;
+    --text: #E8EBF2;
+    --text-dim: #838EA3;
+    --text-faint: #545E70;
+    --amber: #E8A33D;
+    --amber-dim: #6B5427;
+    --teal: #4FD1C5;
+    --teal-dim: #1F4744;
+    --coral: #F0654B;
+    --coral-dim: #4A2620;
+    --radius: 14px;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Space Grotesk', sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  body{
+    margin: 0;
+    min-height: 100vh;
+    background:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0 / 100% 28px,
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0 / 28px 100%,
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 64px 20px 80px;
+  }
+
+  .wrap{
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .eyebrow{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 18px;
+  }
+
+  .eyebrow .dot{
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-dim);
+    animation: pulse-dot 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot{
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  h1{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+
+  .lede{
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0 0 36px;
+    max-width: 52ch;
+  }
+
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before{
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    opacity: 0.5;
+  }
+
+  label.field-label{
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  textarea{
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  textarea::placeholder{ color: var(--text-faint); }
+
+  textarea:focus{
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.12);
+  }
+
+  .row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .count{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  button.analyze{
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    background: var(--amber);
+    color: #1A1305;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 22px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset;
+  }
+
+  button.analyze:hover{ background: #F0B458; transform: translateY(-1px); }
+  button.analyze:active{ transform: translateY(0); }
+  button.analyze:disabled{ opacity: 0.6; cursor: progress; transform: none; }
+
+  button.analyze:focus-visible, textarea:focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  /* signal bar — signature element */
+  .signal{
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 20px;
+  }
+
+  .signal span{
+    width: 3px;
+    background: #1A1305;
+    border-radius: 2px;
+    height: 4px;
+    opacity: 0.55;
+  }
+
+  .analyzing .signal span{
+    animation: bars 0.9s ease-in-out infinite;
+    opacity: 1;
+  }
+
+  .signal span:nth-child(1){ animation-delay: 0s; }
+  .signal span:nth-child(2){ animation-delay: 0.12s; }
+  .signal span:nth-child(3){ animation-delay: 0.24s; }
+  .signal span:nth-child(4){ animation-delay: 0.36s; }
+  .signal span:nth-child(5){ animation-delay: 0.48s; }
+
+  @keyframes bars{
+    0%, 100% { height: 4px; }
+    50% { height: 16px; }
+  }
+
+  /* results */
+  .results{
+    margin-top: 20px;
+    display: none;
+  }
+
+  .results.show{ display: block; animation: rise 0.25s ease; }
+
+  @keyframes rise{
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card{
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .result-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .sentiment-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 13px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .sentiment-badge.positive{ background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(79,209,197,0.35); }
+  .sentiment-badge.negative{ background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(240,101,75,0.35); }
+
+  .sentiment-badge .indicator{
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  .warning-chip{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    background: var(--amber-dim);
+    border: 1px solid rgba(232,163,61,0.35);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  .meter-block{ margin-bottom: 18px; }
+
+  .meter-label{
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .meter-label b{
+    color: var(--text);
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+
+  .meter{
+    display: flex;
+    gap: 3px;
+    height: 10px;
+  }
+
+  .meter i{
+    flex: 1;
+    background: var(--border);
+    border-radius: 2px;
+    display: block;
+  }
+
+  .meter i.filled{ background: var(--amber); }
+  .meter i.filled.pos{ background: var(--teal); }
+  .meter i.filled.neg{ background: var(--coral); }
+
+  .tags-label{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 11px;
+    border-radius: 7px;
+  }
+
+  .error-card{
+    background: var(--coral-dim);
+    border: 1px solid rgba(240,101,75,0.4);
+    color: #FFD8CF;
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .error-card code{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: rgba(0,0,0,0.25);
+    padding: 2px 6px;
+    border-radius: 5px;
+  }
+
+  footer{
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  footer .dot{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-faint);
+  }
+
+  @media (max-width: 480px){
+    h1{ font-size: 27px; }
+    .panel{ padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow"><span class="dot"></span> Signal analysis engine</div>
+  <h1>Review Intelligence</h1>
+  <p class="lede">Paste a product review below. The model reads sentiment and flags the underlying issues in a few hundred milliseconds.</p>
+
+  <div class="panel">
+    <label class="field-label" for="reviewInput">Review text</label>
+    <textarea id="reviewInput" placeholder="e.g. The box arrived damaged and the item stopped working after a week."></textarea>
+
+    <div class="row">
+      <span class="count" id="charCount">0 characters</span>
+      <button class="analyze" id="analyzeBtn" onclick="analyzeReview()">
+        <span class="signal" id="signalBars">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span id="btnLabel">Analyze</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <footer><span class="dot"></span> Connected to <code style="font-family:var(--mono)">/analyze</code> endpoint</footer>
+</div>
+
+<script>
+  // TODO: replace with your deployed backend's public URL, e.g.
+  // "https://review-backend.onrender.com" (no trailing slash).
+  // Localhost only works while FastAPI is running on this same machine.
+  const API_BASE_URL = "http://127.0.0.1:8000";
+
+  const input = document.getElementById("reviewInput");
+  const charCount = document.getElementById("charCount");
+  const btn = document.getElementById("analyzeBtn");
+  const btnLabel = document.getElementById("btnLabel");
+  const results = document.getElementById("results");
+
+  input.addEventListener("input", () => {
+    const n = input.value.length;
+    charCount.textContent = n + (n === 1 ? " character" : " characters");
+  });
+
+  function issueBar(value, cls){
+    const segments = 10;
+    const filled = Math.round(value * segments);
+    let html = '<div class="meter">';
+    for (let i = 0; i < segments; i++){
+      html += `<i class="${i < filled ? 'filled ' + cls : ''}"></i>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderResult(data){
+    if (data.error){
+      results.innerHTML = `<div class="error-card">${data.error}</div>`;
+      results.classList.add("show");
+      return;
+    }
+
+    const sentimentClass = data.sentiment === "positive" ? "pos" : "neg";
+    const confidencePct = Math.round(data.sentiment_confidence * 100);
+
+    const tagsHtml = (data.issue_categories || [])
+      .map(tag => `<span class="tag">${tag}</span>`)
+      .join("");
+
+    results.innerHTML = `
+      <div class="result-card">
+        <div class="result-top">
+          <span class="sentiment-badge ${data.sentiment}">
+            <span class="indicator"></span>
+            ${data.sentiment}
+          </span>
+          ${data.low_confidence_warning ? '<span class="warning-chip">Low confidence</span>' : ''}
+        </div>
+
+        <div class="meter-block">
+          <div class="meter-label">Confidence <b>${confidencePct}%</b></div>
+          ${issueBar(data.sentiment_confidence, sentimentClass)}
+        </div>
+
+        <div class="tags-label">Detected issues</div>
+        <div class="tags">${tagsHtml}</div>
+      </div>
+    `;
+    results.classList.add("show");
+  }
+
+  async function analyzeReview() {
+    const review = input.value;
+    if (!review.trim()){
+      input.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add("analyzing");
+    btnLabel.textContent = "Analyzing";
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review })
+      });
+      const data = await response.json();
+      renderResult(data);
+    } catch (err) {
+      results.innerHTML = `<div class="error-card">
+        Could not reach the analysis backend at <code>${API_BASE_URL}</code>.
+        Make sure the API is running and reachable from this page.
+      </div>`;
+      results.classList.add("show");
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("analyzing");
+      btnLabel.textContent = "Analyze";
+    }
+  }
+
+  input.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") analyzeReview();
+  });
+</script>
+</body>
+</html>
